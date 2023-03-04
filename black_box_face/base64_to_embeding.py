@@ -4,20 +4,27 @@ import numpy as np
 import base64
 from datetime import datetime
 from pgvector.sqlalchemy import Vector
-# def base64_to_embedding(image_base64: str):
-#     photo = image_base64[23:]
-#     photo_decode = base64.b64decode(photo)
-#     path = 'data/image'+str(datetime.now())+'.jpeg'
-#     with open(path, 'wb') as f:
-#         f.write(photo_decode)
-    
-#     return get_embeding(path)
-    
+
+
+
+path = f'data/image{datetime.now()}.jpeg'
+
+
 async def base64_to_embedding(image_base64: str):
-    return [151,112,3,8.2234,15,67,113.1,1]
+    photo = image_base64[23:]
+    photo_decode = base64.b64decode(photo)
+
+   
+    with open(path, 'wb') as f:
+        f.write(photo_decode)
+    
+    return await get_embeding(path)
+    
+# async def base64_to_embedding(image_base64: str):
+#     return [5,112,3,8.2234,15881,71,113.1,1]
     
 
-def get_embeding(image_path: str):
+async def get_embeding(image_path: str):
 
     current_image = face_recognition.load_image_file(image_path)
     #
@@ -35,4 +42,4 @@ def get_embeding(image_path: str):
         return face_encodings[0]
         # return face_encodings[0].tolist()
     else:
-        return 0
+        return []

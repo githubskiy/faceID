@@ -14,7 +14,7 @@ class UserInDB(Base):
     user_name = Column(String, nullable=False)
     path_storage = Column(String, default="---")
     # face_embeding = Column(ARRAY(DECIMAL(13, 12)))
-    face_embeding = Column(Vector(dim=8), nullable=True)
+    face_embeding = Column(Vector(dim=128), nullable=True)
     # face_embeding = Column(Vector(dim=128))
     is_active = Column(Boolean(), default=True)
     

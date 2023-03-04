@@ -1,0 +1,122 @@
+<!doctype html>
+
+<head>
+    <style>
+    /* CSS comes here */
+    #video {
+        border: 1px solid black;
+        width: 640px;
+        height: 480px;
+    }
+
+
+    #photo {
+        border: 1px solid black;
+        width: 320px;
+        height: 240px;
+        display: none;
+    }
+
+    #canvas {
+        display: none;
+    }
+
+
+
+    .output {
+        width: 340px;
+        display: inline-block;
+    }
+
+    #buttons_container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 220px;
+        margin: 10px auto;
+    }
+
+    /* #register_button {
+        display: block;
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+        bottom: 5px;
+        padding: 5px;
+        background-color: #5783dc;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        color: rgba(255, 255, 255, 1.0);
+        cursor: pointer;
+    } */
+
+    /* #login_button {
+        display: block;
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+        bottom: 36px;
+        padding: 5px;
+        background-color: #17c80a;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        color: rgba(255, 255, 255, 1.0);
+        cursor: pointer;
+    } */
+
+    #register_button {
+        display: block;
+        position: relative;
+        padding: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        color: rgba(255, 255, 255, 1.0);
+        cursor: pointer;
+        background-color: #5783dc;
+        width: 100px;
+    }
+
+    #login_button {
+        display: block;
+        position: relative;
+        padding: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        color: rgba(255, 255, 255, 1.0);
+        cursor: pointer;
+        background-color: #17c80a;
+        width: 100px;
+    }
+
+    .contentarea {
+        font-size: 16px;
+        font-family: Arial;
+        text-align: center;
+    }
+    </style>
+    <title>My Favorite Sport</title>
+</head>
+
+<body>
+    <div class="contentarea">
+        <h1>
+            Hi, brother !
+        </h1>
+        
+            <div class="camera">
+                <video id="video">Video stream not available.</video>
+            </div>
+ 
+        <div id="buttons_container">
+            <div><button id="register_button">Register </button></div>
+            <div><button id="login_button">Login    </button></div>
+        </div>
+        <canvas id="canvas"></canvas>
+        <div class="output">
+            <img id="photo" alt="The screen capture will appear in this box.">
+        </div>
+    </div>
+
+    <script src="static/script.js"></script>
+</body>
+</html>

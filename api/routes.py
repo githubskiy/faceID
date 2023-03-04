@@ -14,6 +14,7 @@ from db.db_config import get_db
 from api.service.auth import authenticate_user
 from black_box_face.base64_to_embeding import base64_to_embedding
 
+from fastapi import Body
 
 logger = getLogger(__name__)
 
@@ -32,13 +33,15 @@ async def create_user(body: UserCreate, db: AsyncSession = Depends(get_db)) -> S
         raise HTTPException(status_code=409, detail="User with this username already exists")
 
     try:
-        print("BBASSSEEEEEEEEE",    body.photo_base64)
-        return await _create_new_user(body, db)
+        
+        # print("BBASSSEEEEEEEEE",    body.photo_base64)
+        return await _create_new_user(face_emb=face_emb, body=body, db=db)
        
         
     except IntegrityError as err:
         logger.error(err)
         raise HTTPException(status_code=503, detail=f"Database error: {err}")
+
 
 
 # @user_router.delete("/", response_model=DeleteUserResponse)

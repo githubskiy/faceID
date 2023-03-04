@@ -4,17 +4,19 @@ from typing import List, Union
 from api.schemas import UserInDB, UserCreate, ShowUser
 from db.db_config import async_session_local
 from db.DAL import UserDAL
+from pgvector.sqlalchemy import Vector
 
-
-async def _create_new_user(body: UserCreate, db)-> ShowUser:
+async def _create_new_user(face_emb: Vector,body: UserCreate, db)-> ShowUser:
     async with db as session:
         async with session.begin():
             user_dal = UserDAL(session)
 
             user = await user_dal.create_user(
                 user_name = body.user_name,
-                photo_base64 = body.photo_base64
+                photo_base64 = body.photo_base64,
+                face_emb = face_emb
             )
+            
             return ShowUser(
                 user_id=user.user_id,
                 user_name=user.user_name,

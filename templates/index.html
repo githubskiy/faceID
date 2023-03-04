@@ -1,0 +1,250 @@
+<!doctype html>
+
+<head>
+    <style>
+    /* CSS comes here */
+    #video {
+        border: 1px solid black;
+        width: 320px;
+        height: 240px;
+    }
+
+    #photo {
+        border: 1px solid black;
+        width: 320px;
+        height: 240px;
+        display: none;
+    }
+
+    #canvas {
+        display: none;
+    }
+
+    .camera {
+        width: 340px;
+        display: inline-block;
+    }
+
+    .output {
+        width: 340px;
+        display: inline-block;
+    }
+
+    #startbutton {
+        display: block;
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+        bottom: 36px;
+        padding: 5px;
+        background-color: #6a67ce;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        color: rgba(255, 255, 255, 1.0);
+        cursor: pointer;
+    }
+
+    .contentarea {
+        font-size: 16px;
+        font-family: Arial;
+        text-align: center;
+    }
+    </style>
+    <title>My Favorite Sport</title>
+</head>
+
+<body>
+    <div class="contentarea">
+        <h1>
+            Using Javascript to capture Photo
+        </h1>
+        <div class="camera">
+            <video id="video">Video stream not available.</video>
+        </div>
+        <div><button id="register_button">Register </button></div>
+        <div><button id="login_button">Login    </button></div>
+        <canvas id="canvas"></canvas>
+        <div class="output">
+            <img id="photo" alt="The screen capture will appear in this box.">
+        </div>
+    </div>
+
+    <script>
+    /* JS comes here */
+    (function() {
+
+        var width = 1200; // We will scale the photo width to this
+        var height = 0; // This will be computed based on the input stream
+
+        var streaming = false;
+
+        var video = null;
+        var canvas = null;
+        var photo = null;
+        var register_button = null;
+        var login_button = null;
+
+        function startup() {
+            video = document.getElementById('video');
+            canvas = document.getElementById('canvas');
+            photo = document.getElementById('photo');
+            register_button = document.getElementById('register_button');
+            login_button = document.getElementById('login_button');
+
+
+            navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false
+                })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(function(err) {
+                    console.log("An error occurred: " + err);
+                });
+
+            video.addEventListener('canplay', function(ev) {
+                if (!streaming) {
+                    height = video.videoHeight / (video.videoWidth / width);
+
+                    if (isNaN(height)) {
+                        height = width / (4 / 3);
+                    }
+
+                    video.setAttribute('width', width);
+                    video.setAttribute('height', height);
+                    canvas.setAttribute('width', width);
+                    canvas.setAttribute('height', height);
+                    streaming = true;
+                }
+            }, false);
+
+            register_button.addEventListener('click', function(ev) {
+                takepicture_for_register();
+                ev.preventDefault();
+            }, false);
+
+            login_button.addEventListener('click', function(ev) {
+                takepicture_for_login();
+                ev.preventDefault();
+            }, false);
+
+            clearphoto();
+
+
+        }
+
+
+        function clearphoto() {
+            var context = canvas.getContext('2d');
+            context.fillStyle = "#AAA";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // var data = canvas.toDataURL('image/png');
+            // photo.setAttribute('src', data);
+        }
+
+        async function takepicture_for_register() {
+            var context = canvas.getContext('2d');
+            if (width && height) {
+                canvas.width = width;
+                canvas.height = height;
+                context.drawImage(video, 0, 0, width, height);
+
+            
+                // console.log("context.getImageData: "+context.getImageData(0,0,width,height).data);
+
+                var dataURL = canvas.toDataURL('image/jpeg');
+                console.log("dataURL_lenght: "+dataURL);
+                photo.setAttribute('src', dataURL);
+
+                // const response = await fetch("/user", {
+                //     method: "GET",
+                //     headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                //     body: JSON.stringify({
+                //         photo: dataURL
+                      
+                //     })
+                // });
+
+                const response = await fetch("/user", {
+                    method: "POST",
+                    headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_name: "max",
+                        photo_base64: dataURL
+                      
+                    })
+                });
+
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("data response: "+data);
+                    // document.getElementById("ajax").textContent = data.message;
+                }
+                else
+                    console.log("response: "+response);
+
+            } else {
+                clearphoto();
+            }
+        }
+
+        async function takepicture_for_login() {
+            var context = canvas.getContext('2d');
+            if (width && height) {
+                canvas.width = width;
+                canvas.height = height;
+                context.drawImage(video, 0, 0, width, height);
+
+            
+                // console.log("context.getImageData: "+context.getImageData(0,0,width,height).data);
+
+                var dataURL = canvas.toDataURL('image/jpeg');
+                console.log("dataURL_lenght: "+dataURL);
+                photo.setAttribute('src', dataURL);
+
+                // const response = await fetch("/user", {
+                //     method: "GET",
+                //     headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                //     body: JSON.stringify({
+                //         photo: dataURL
+                      
+                //     })
+                // });
+
+                const response = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        photo_base64: dataURL
+                      
+                    })
+                });
+
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("data response: "+data);
+                    // document.getElementById("ajax").textContent = data.message;
+                }
+                else
+                    console.log("response: "+response);
+
+            } else {
+                clearphoto();
+            }
+        }
+
+        
+
+
+        window.addEventListener('load', startup, false);
+    })();
+    </script>
+</body>
+
+</html>
+
