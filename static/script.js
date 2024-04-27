@@ -8,6 +8,9 @@ var canvas = null;
 var photo = null;
 var register_button = null;
 var login_button = null;
+var nameElement = null;
+var ageElement = null;
+
 
 function startup() {
     video = document.getElementById('video');
@@ -15,7 +18,8 @@ function startup() {
     photo = document.getElementById('photo');
     register_button = document.getElementById('register_button');
     login_button = document.getElementById('login_button');
-
+    nameElement = document.getElementById("name-input");
+    ageElement = document.getElementById("age-input");
 
     navigator.mediaDevices.getUserMedia({
             video: true,
@@ -69,6 +73,10 @@ function clearphoto() {
     // var data = canvas.toDataURL('image/png');
     // photo.setAttribute('src', data);
 }
+function isNumber(value) {
+    return typeof value === 'number' && !isNaN(value);
+  }
+
 
 async function takepicture_for_register() {
     var context = canvas.getContext('2d');
@@ -76,46 +84,47 @@ async function takepicture_for_register() {
         canvas.width = width;
         canvas.height = height;
         context.drawImage(video, 0, 0, width, height);
-
     
         // console.log("context.getImageData: "+context.getImageData(0,0,width,height).data);
 
         var dataURL = canvas.toDataURL('image/jpeg');
-        console.log("dataURL_lenght: "+dataURL);
+        // console.log("dataURL_lenght: "+dataURL);
         photo.setAttribute('src', dataURL);
 
-        // const response = await fetch("/user", {
-        //     method: "GET",
-        //     headers: { "Accept": "application/json", "Content-Type": "application/json" },
-        //     body: JSON.stringify({
-        //         photo: dataURL
-              
-        //     })
-        // });
+        nameValue = nameElement.value;
+        ageValue = ageElement.value;
+        
+        console.log("nameValue: "+ nameValue);
+        console.log("ageValue: "+ ageValue);
+  
+      
+            const response = await fetch("/user", { 
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_name: nameValue,
+                    user_age: ageValue,
+                    photo_base64: dataURL
+                })
+            });
+        
+            if (response.ok) {
+                const data = await response.json();
+                console.log("data response: "+ data);
+                // document.getElementById("ajax").textContent = data.message;
+            }
+            else
+                console.log("response: "+response);
+        
 
-        const response = await fetch("/user", {
-            method: "POST",
-            headers: { "Accept": "application/json", "Content-Type": "application/json" },
-            body: JSON.stringify({
-                user_name: "max",
-                photo_base64: dataURL
-              
-            })
-        });
-
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log("data response: "+data);
-            // document.getElementById("ajax").textContent = data.message;
-        }
-        else
-            console.log("response: "+response);
-
-    } else {
+    } 
+    else 
+    {
         clearphoto();
     }
 }
+
+
 
 async function takepicture_for_login() {
     var context = canvas.getContext('2d');
@@ -123,37 +132,29 @@ async function takepicture_for_login() {
         canvas.width = width;
         canvas.height = height;
         context.drawImage(video, 0, 0, width, height);
-
     
         // console.log("context.getImageData: "+context.getImageData(0,0,width,height).data);
 
         var dataURL = canvas.toDataURL('image/jpeg');
-        console.log("dataURL_lenght: "+dataURL);
-        photo.setAttribute('src', dataURL);
-
-        // const response = await fetch("/user", {
-        //     method: "GET",
-        //     headers: { "Accept": "application/json", "Content-Type": "application/json" },
-        //     body: JSON.stringify({
-        //         photo: dataURL
-              
-        //     })
-        // });
+       
+            photo.setAttribute('src', dataURL);
 
         const response = await fetch("/login", {
             method: "POST",
             headers: { "Accept": "application/json", "Content-Type": "application/json" },
             body: JSON.stringify({
                 photo_base64: dataURL
-              
             })
         });
 
-
         if (response.ok) {
             const data = await response.json();
-            console.log("data response: "+data);
-            // document.getElementById("ajax").textContent = data.message;
+            console.log("data response: "+ data['access_token']);
+            localStorage.setItem("accessToken",  data['access_token']);
+            currentURL = window.location.href;
+            window.location.assign(currentURL + "user_cabinet")
+            console.log(currentURL);
+            console.log(currentURL + "user_cabinet");
         }
         else
             console.log("response: "+response);

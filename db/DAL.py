@@ -19,6 +19,7 @@ from datetime import datetime
 import base64
 from black_box_face.base64_to_embeding import path
 import glob
+from db import db_config_milvus
 
 class DirectoryCreationError(Exception):
     def __init__(self, message="Cannot create directory"):
@@ -34,21 +35,34 @@ class UserDAL:
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
 
-    
-    
 
-    async def create_user(
-        self,user_name: str, photo_base64: str, face_emb: Vector) -> UserInDB:
+    async def create_user(self,user_name: str, photo_base64: str, user_age: int, face_emb: list) -> UserInDB:
         
         # embeding = await base64_to_embedding(photo_base64)
         
         new_user = UserInDB(
             user_name = user_name,
-            face_embeding = face_emb
-
+            user_age = user_age
         )
         self.db_session.add(new_user)
         await self.db_session.flush()
+
+        db_config_milvus.create_collections_if_not_exist(db_config_milvus.connection, f"_{new_user.user_id}")
+        
+        status, count_emb = db_config_milvus.connection.count_entities(f"_{new_user.user_id}")
+
+        status, ids = db_config_milvus.connection.insert(
+            collection_name = f"_{new_user.user_id}",
+            records = [face_emb],
+            ids=[count_emb])  
+        db_config_milvus.connection.flush([f"_{new_user.user_id}"])
+
+        status, ids = db_config_milvus.connection.insert(
+            collection_name = "cluster",
+            records = [face_emb],
+            ids=[new_user.user_id])
+        
+        db_config_milvus.connection.flush(["cluster"])
 
 
         try:
@@ -82,80 +96,51 @@ class UserDAL:
 
 
 
-    async def get_user_by_embedding(self, embedding:  Vector) -> Union[UserInDB, None]: 
+    async def get_user_by_embedding(self, embedding:  list) -> Union[UserInDB, None]: 
 
         if embedding == []:
             raise HTTPException(status_code=410, detail="Did not found face, try again")
-
-        # Отримання векторів облич з бази даних
-        embeddings = []
-
+        
+        search_param = {'nprobe': 16}
+        param = {
+                'collection_name': "cluster",
+                'query_records': [embedding], 
+                'top_k': 1,
+                'params': search_param,
+        }
         try:
-            stmt_vec = select(UserInDB.face_embeding)
-           
-            result_vec = await self.db_session.execute(stmt_vec)
-
-
-            embeddings = [row[0] for row in result_vec]
-           
-
-            embeddings = np.array(embeddings, dtype=np.float32)
-
-        except asyncpg.exceptions.PostgresError as e:
-            raise HTTPException(e, detail="Can't getting embeddings for indexation",
-        )
-        if len(embeddings) == 0:
-            return None
-        
-
-         # Normalize the vectors
-        embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
-
-        # Побудова індексу векторів облич
-        index = faiss.IndexFlatIP(len(embeddings[0]))
-
-        # index_description = "IVF{x},Flat".format(x=1)
-
-        # index = faiss.index_factory(len(embeddings[0]), index_description, faiss.METRIC_INNER_PRODUCT)
-        # ids = np.array(ids)
-        # index.train(embeddings)
-
-
-        index.add(embeddings)
-
-
-        query_embedding = np.array([embedding], dtype=np.float32)
-
-        query_embedding /= np.linalg.norm(query_embedding) 
-
-        # distances_squared, indices = index.search(query_embedding, k=1)
-
-        # distances = np.sqrt(distances_squared)
-
-        distances, indices = index.search(query_embedding, k=1)
-
-        cosine_distance = 1.0 - distances[0][0]
-        
-        print(f"SIMILARITY: {distances}  INDICIES: {indices}")
-        print(f"COSINE DISTANCE: {cosine_distance}  INDICIES: {indices}")
-
-        if cosine_distance >= 0.1:
+            status, results = db_config_milvus.connection.search(**param)
+    
+        except:
+            raise HTTPException(status_code=414, detail="Did not found face, try again")
+    
+        if len(results) == 0:
             return None
 
+        print(f"Cosine distance: {1 - results[0][0].distance}  INDICIES: {results[0][0].id}")
+
+        if (1 - results[0][0].distance > 0.353):
+                    return None
         try:
-            stmt = select(UserInDB).where(UserInDB.user_id == indices[0][0]+1)
+            stmt = select(UserInDB).where(UserInDB.user_id == results[0][0].id)
             result = await self.db_session.execute(stmt)
             user = result.scalar()
             return user
         
         except:
             return None
+    
+
+    async def get_user_by_id(self, id:  int) -> Union[UserInDB, None]: 
+        try:
+            stmt = select(UserInDB).where(UserInDB.user_id == id)
+            result = await self.db_session.execute(stmt)
+            user = result.scalar()
+            return user
+        except:
+            return None
+
         
-
-
-        
-
-
 
 
 

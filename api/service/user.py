@@ -6,13 +6,14 @@ from db.db_config import async_session_local
 from db.DAL import UserDAL
 from pgvector.sqlalchemy import Vector
 
-async def _create_new_user(face_emb: Vector,body: UserCreate, db)-> ShowUser:
+async def _create_new_user(face_emb: list, body: UserCreate, db)-> ShowUser:
     async with db as session:
         async with session.begin():
             user_dal = UserDAL(session)
 
             user = await user_dal.create_user(
                 user_name = body.user_name,
+                user_age = body.user_age,
                 photo_base64 = body.photo_base64,
                 face_emb = face_emb
             )

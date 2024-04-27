@@ -1,0 +1,19 @@
+fastapi
+uvicorn
+
+passlib
+envparse
+
+alembic
+
+nu  mpy
+
+faiss-cpu   
+
+asyncpg
+
+face_recognition
+
+python-jose
+
+jinja2

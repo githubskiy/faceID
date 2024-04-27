@@ -24,6 +24,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     user_name: str
+    user_age: int
 
 
 
@@ -31,7 +32,8 @@ class UserInDB(BaseModel):
     user_id: int
     user_name: str
     path_storage: str
-    face_embeding: Vector
+    face_embeding: list
+    user_age: int
     is_active: bool
 
     class Config:

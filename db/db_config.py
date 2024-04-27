@@ -18,15 +18,10 @@ from typing import Generator
 
 
 engine = create_async_engine(settings.DATABASE_URL, future=True, echo=True)
-
 async_session_local = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-
-
-
 
 async def get_db() -> Generator:
     """Dependency for getting async session"""
-
     try:
         db_session: AsyncSession = async_session_local()
         yield db_session

@@ -18,7 +18,7 @@ from hashing import Hasher
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/token")
 
 
-async def _get_user_by_embeding_for_auth(face_embedding: Vector, session: AsyncSession):
+async def _get_user_by_embeding_for_auth(face_embedding: list, session: AsyncSession):
 
     async with session.begin():
         user_dal = UserDAL(session)
@@ -26,7 +26,7 @@ async def _get_user_by_embeding_for_auth(face_embedding: Vector, session: AsyncS
         return await user_dal.get_user_by_embedding(face_embedding)
 
 
-async def authenticate_user(face_embedding: Vector, db: AsyncSession) -> Union[UserInDB, None]:
+async def authenticate_user(face_embedding: list, db: AsyncSession) -> Union[UserInDB, None]:
     
     user = await _get_user_by_embeding_for_auth(face_embedding, session=db)
     
